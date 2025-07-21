@@ -1,0 +1,240 @@
+ /*Step-1 create database*/
+Create database wage_manager;
+use wage_manager;
+show databases;
+show tables;
+
+/*step-2 create tables*/
+CREATE TABLE Departments (
+  DepartmentID INT PRIMARY KEY AUTO_INCREMENT,
+  DeptName VARCHAR(100) NOT NULL
+);
+desc departments;
+
+CREATE TABLE Designations (
+  DesignationID INT PRIMARY KEY AUTO_INCREMENT,
+  Title VARCHAR(100) NOT NULL
+);
+desc designations;
+
+CREATE TABLE Locations (
+  LocationID INT PRIMARY KEY AUTO_INCREMENT,
+  LocationName VARCHAR(100) NOT NULL
+);
+desc Locations;
+
+CREATE TABLE Employees (
+  EmployeeID INT PRIMARY KEY AUTO_INCREMENT,
+  FullName VARCHAR(100) NOT NULL,
+  Email VARCHAR(100) UNIQUE,
+  Phone VARCHAR(15),
+  DepartmentID INT,
+  DesignationID INT,
+  LocationID INT,
+  DateOfJoining DATE,
+  Status ENUM('Active', 'Inactive', 'Resigned') DEFAULT 'Active',
+  FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID),
+  FOREIGN KEY (DesignationID) REFERENCES Designations(DesignationID),
+  FOREIGN KEY (LocationID) REFERENCES Locations(LocationID)
+);
+desc Employees;
+
+CREATE TABLE Salaries (
+  SalaryID INT PRIMARY KEY AUTO_INCREMENT,
+  EmployeeID INT UNIQUE,
+  BasicSalary DECIMAL(10,2) NOT NULL,
+  FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+);
+desc Salaries;
+
+CREATE TABLE AttendanceLogs (
+  LogID INT PRIMARY KEY AUTO_INCREMENT,
+  EmployeeID INT,
+  LogDate DATE,
+  CheckIn TIME,
+  CheckOut TIME,
+  Status ENUM('Present', 'Absent', 'Leave'),
+  FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+);
+desc AttendanceLogs;
+
+CREATE TABLE LeaveRequests (
+  LeaveID INT PRIMARY KEY AUTO_INCREMENT,
+  EmployeeID INT,
+  LeaveType VARCHAR(50),
+  StartDate DATE,
+  EndDate DATE,
+  Status ENUM('Pending', 'Approved', 'Rejected'),
+  FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+);
+desc LeaveRequests;
+
+CREATE TABLE Payrolls (
+  PayrollID INT PRIMARY KEY AUTO_INCREMENT,
+  EmployeeID INT,
+  MonthYear VARCHAR(7), -- Format: 'YYYY-MM'
+  BasicSalary DECIMAL(10,2),
+  Bonuses DECIMAL(10,2),
+  Deductions DECIMAL(10,2),
+  NetPay DECIMAL(10,2),
+  GeneratedOn DATE DEFAULT (CURDATE()),
+  FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+);
+desc Payrolls;
+
+CREATE TABLE Appraisals (
+  AppraisalID INT PRIMARY KEY AUTO_INCREMENT,
+  EmployeeID INT,
+  ReviewDate DATE,
+  KPI_Score INT CHECK (KPI_Score BETWEEN 0 AND 100),
+  Reviewer VARCHAR(100),
+  FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+);
+desc Appraisals;
+
+CREATE TABLE Holidays (
+  HolidayID INT PRIMARY KEY AUTO_INCREMENT,
+  HolidayDate DATE NOT NULL,
+  Description VARCHAR(100)
+);
+desc Holidays;
+
+/*step-3 Alter Database*/
+-- Add a column
+ALTER TABLE Employees ADD COLUMN Gender ENUM('Male', 'Female', 'Other');
+-- Modify datatype
+ALTER TABLE Employees MODIFY COLUMN Phone VARCHAR(20);
+-- Rename a column
+ALTER TABLE Employees CHANGE COLUMN FullName Full_Name VARCHAR(100);
+-- Drop a column
+ALTER TABLE Employees DROP COLUMN Gender;
+-- Rename table
+RENAME TABLE Employees TO Staff;
+desc staff;
+RENAME TABLE Staff TO Employees;  -- Optional revert
+-- Truncate table
+TRUNCATE TABLE Holidays;
+select * from holidays;
+-- Drop Table
+DROP TABLE Holidays;
+
+
+/*---------------------DML Queries-------------------------*/
+-- Departments
+INSERT INTO Departments (DeptName) VALUES
+('Human Resources'), ('Finance'), ('IT'), ('Marketing');
+select * from departments;
+
+-- Designations
+INSERT INTO Designations (Title) VALUES
+('Manager'), ('HR Executive'), ('Software Engineer'), ('Accountant');
+
+-- Locations
+INSERT INTO Locations (LocationName) VALUES
+('Head Office'), ('Branch Office - Delhi'), ('Branch Office - Mumbai');
+
+-- Employees
+INSERT INTO Employees (Full_Name, Email, Phone, DepartmentID, DesignationID, LocationID, DateOfJoining)
+VALUES
+('Jayaa Sharma', 'jayaa@company.com', '9999988888', 1, 2, 1, '2022-05-01'),
+('Ravi Mehta', 'ravi@company.com', '8888877777', 3, 3, 2, '2021-09-15'),
+('Neha Arora', 'neha@company.com', '7777766666', 2, 4, 3, '2023-01-20'),
+('Amit Patel', 'amit@company.com', '6666655555', 4, 1, 1, '2020-07-10');
+Select * from employees;
+
+-- Salaries
+INSERT INTO Salaries (EmployeeID, BasicSalary) VALUES
+(1, 45000.00),
+(2, 60000.00),
+(3, 40000.00),
+(4, 75000.00);
+select * from salaries;
+
+-- Attendance Logs
+INSERT INTO AttendanceLogs (EmployeeID, LogDate, CheckIn, CheckOut, Status) VALUES
+(1, '2025-07-01', '09:00:00', '17:00:00', 'Present'),
+(2, '2025-07-01', '09:30:00', '17:30:00', 'Present'),
+(3, '2025-07-01', NULL, NULL, 'Leave'),
+(4, '2025-07-01', '10:00:00', '16:30:00', 'Present');
+select * from attendanceLogs;
+
+-- Leave Requests
+INSERT INTO LeaveRequests (EmployeeID, LeaveType, StartDate, EndDate, Status) VALUES
+(3, 'Sick Leave', '2025-07-01', '2025-07-03', 'Approved'),
+(1, 'Casual Leave', '2025-07-10', '2025-07-11', 'Pending');
+select * from LeaveRequests;
+
+-- Payrolls
+INSERT INTO Payrolls (EmployeeID, MonthYear, BasicSalary, Bonuses, Deductions, NetPay) VALUES
+(1, '2025-06', 45000.00, 2000.00, 500.00, 46500.00),
+(2, '2025-06', 60000.00, 3000.00, 1000.00, 62000.00),
+(3, '2025-06', 40000.00, 1000.00, 0.00, 41000.00);
+
+-- Appraisals
+INSERT INTO Appraisals (EmployeeID, ReviewDate, KPI_Score, Reviewer) VALUES
+(1, '2025-06-30', 85, 'HR Manager'),
+(2, '2025-06-30', 90, 'CTO'),
+(3, '2025-06-30', 70, 'Finance Head');
+
+/*-------------------------update----------------------------*/
+-- Update an employee's status to Resigned
+UPDATE Employees SET Status = 'Resigned' WHERE EmployeeID = 4;
+
+-- Update salary for a specific employee
+UPDATE Salaries SET BasicSalary = 48000.00 WHERE EmployeeID = 1;
+
+/*-------------------------DELETE----------------------------*/
+-- Delete a leave request (e.g., cancelled leave)
+DELETE FROM LeaveRequests WHERE LeaveID = 2;
+
+/*-------------------------------------------DQL------------------------------------*/
+
+Select * from Appraisals;
+select employeeID, KPI_score from Appraisals;
+select Email as Email_IDs_of_Employees from Employees;
+SELECT Full_Name, DateOfJoining FROM Employees ORDER BY DateOfJoining asc LIMIT 2;
+SELECT DISTINCT Status FROM Employees;
+SELECT Full_Name, Email FROM Employees WHERE Email LIKE '%@company.com';
+SELECT Full_Name, DateOfJoining FROM Employees WHERE DateOfJoining > '2023-01-01';
+SELECT Full_Name FROM Employees WHERE Status = 'Active' AND DepartmentID = 3;
+Select EmployeeID, LeaveType FROM LeaveRequests WHERE LeaveType = 'Sick Leave'OR 'WEEK OFF';
+SELECT Full_Name FROM Employees WHERE DepartmentID != 4 AND Status != 'Resigned';
+SELECT Full_Name, DateOfJoining, Phone FROM Employees WHERE DateOfJoining > '2023-01-01' AND Phone IS NOT NULL;
+SELECT * FROM Salaries WHERE BasicSalary BETWEEN 40000 AND 60000;
+SELECT * FROM Employees WHERE DepartmentID IN (1, 3);
+SELECT * FROM Salaries WHERE BasicSalary > ANY (SELECT BasicSalary FROM Salaries WHERE EmployeeID IN (2, 3));
+SELECT * FROM Salaries WHERE BasicSalary > ALL (SELECT BasicSalary FROM Salaries WHERE EmployeeID IN (2, 3));
+
+-- Count employees per department
+SELECT DepartmentID, COUNT(*) AS EmployeeCount FROM Employees GROUP BY DepartmentID;
+-- Departments with more than 1 employee
+SELECT DepartmentID, COUNT(*) AS Total FROM Employees GROUP BY DepartmentID HAVING Total > 1; 
+-- Q: Show each employee with their department name
+SELECT e.Full_Name, d.DeptName FROM Employees e INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+-- Q: Show all employees and their departments (if any)
+SELECT e.Full_Name, d.DeptName FROM Employees e LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+-- Q: List all departments, including those with no employees
+SELECT d.DeptName, e.Full_Name FROM Departments d RIGHT JOIN Employees e ON d.DepartmentID = e.DepartmentID;
+SELECT e1.Full_Name AS Employee1, e2.Full_Name AS Employee2, e1.DepartmentID FROM Employees e1 JOIN Employees e2 ON e1.DepartmentID = e2.DepartmentID WHERE e1.EmployeeID < e2.EmployeeID;
+SELECT e.Full_Name, l.LocationName FROM Employees e CROSS JOIN Locations l;
+SELECT COUNT(*) AS TotalEmployees FROM Employees;
+SELECT SUM(NetPay) AS TotalPayroll FROM Payrolls WHERE MonthYear = '2025-06';
+SELECT AVG(BasicSalary) AS AverageSalary FROM Salaries;
+-- Q: Get a combined list of employee names and appraisal reviewers
+SELECT Full_Name AS Person FROM Employees UNION SELECT Reviewer FROM Appraisals;
+-- Q: Create a view showing active employees and their salary
+CREATE VIEW ActiveEmployeesWithSalary AS SELECT e.Full_Name, s.BasicSalary FROM Employees e JOIN Salaries s ON e.EmployeeID = s.EmployeeID WHERE e.Status = 'Active';
+-- Q: Show all data from the above view
+SELECT * FROM ActiveEmployeesWithSalary;
+SELECT * FROM Employees WHERE EmployeeID = (SELECT EmployeeID FROM Salaries  WHERE BasicSalary = (SELECT MAX(BasicSalary) FROM Salaries));
+SELECT * FROM Employees
+WHERE EmployeeID IN (
+  SELECT DISTINCT EmployeeID FROM LeaveRequests
+);
+
+SELECT * FROM Salaries
+WHERE EmployeeID IN (
+  SELECT EmployeeID FROM Appraisals
+  WHERE ReviewDate = '2025-06-30'
+);
+
